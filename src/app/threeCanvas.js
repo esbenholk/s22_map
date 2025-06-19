@@ -266,12 +266,10 @@ function Canvas({ _centers }) {
       <div
         style={{
           position: "fixed",
-          bottom: 0,
+          top: 0,
           left: 0,
           display: "flex",
           gap: "10px",
-          padding: "10px",
-          background: "rgba(255,255,255,0.9)",
           zIndex: 3,
         }}
       >
