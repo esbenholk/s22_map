@@ -1,8 +1,15 @@
-import client from "./client";
 import { useEffect, useState } from "react";
 import AsciiScene from "./asciimodel";
-
+import BlockContent from "./blockContent";
 import Map from "./threeCanvas.js";
+
+import client from "./client";
+import imageUrlBuilder from "@sanity/image-url";
+const builder = imageUrlBuilder(client);
+
+function urlFor(source) {
+  return builder.image(source);
+}
 
 const focusCenterQuery = `*[_type == "focusCenter"]{
   _id,
@@ -21,7 +28,7 @@ const focusCenterQuery = `*[_type == "focusCenter"]{
       url,
       metadata { dimensions }
     }, null),
-    "link": select(type == "video" => link, null),
+
     childElements[]{
       ...,
          "color": color.hex,
@@ -30,7 +37,7 @@ const focusCenterQuery = `*[_type == "focusCenter"]{
         urlm,
         metadata { dimensions }
       }, null),
-      "link": select(type == "video" => link, null),
+ 
     }
   },
   connections
@@ -43,10 +50,10 @@ export default function App() {
   // get sitesettings and page names (for slug redirection)
   useEffect(() => {
     client
-      .fetch(
-        '*[_type == "siteSettings" ]{backgroundImage{asset->{url}}, favicon{asset->{url}}, mainImage, frames, doodles, playButtons, logo, maincolor, detailcolor, collagelayers,collagelayersMobile, popup, popupsarray[]{position,delay, image, title, url, project->{slug}, useProject, textcolor, maincolor, backgroundimage}, stickerarray, subtitle, textcolor, title, headerMenu[] {_type == "button" => { _type, linkTarget{url, project->{slug},category->{slug},page->{slug}, type}, title}}, footerMenu[] {_type == "button" => { _type, linkTarget{url, project->{slug},category->{slug},page->{slug}, type}, title}}, footerContent}'
-      )
+      .fetch('*[_type == "settings" ]{content, logo}')
       .then((data) => {
+        console.log("settings", data);
+
         setSiteSettings(data[0]);
       })
       .catch(console.error);
@@ -56,8 +63,6 @@ export default function App() {
     client
       .fetch(focusCenterQuery)
       .then((data) => {
-        console.log(data);
-
         const resolvedCenters = data.map((center) => {
           const absoluteX = center.relativeTo
             ? center.relativeTo.x + center.x
@@ -104,6 +109,26 @@ export default function App() {
         <>
           <AsciiScene modelUrl={"/s2c_logo.glb"} />
           <Map centers={focusCenters} />
+
+          <a
+            className="button navbutton s2cbutton"
+            href="https://subjecttochange.site/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {siteSettings && siteSettings.logo ? (
+              <img src={urlFor(siteSettings.logo).width(30).url()} alt="img" />
+            ) : (
+              "S2C"
+            )}
+          </a>
+
+          {siteSettings && siteSettings.content && (
+            <div className="appcontent">
+              {" "}
+              <BlockContent blocks={siteSettings.content} />{" "}
+            </div>
+          )}
         </>
       )}{" "}
     </>

@@ -2,23 +2,13 @@ import React, { useState, useRef, useMemo } from "react";
 
 import ReactPlayer from "react-player";
 
-const VideoPlayer = ({ url }) => {
+const VideoPlayer = ({ url, width, height }) => {
   const [playing, setPlaying] = useState(false);
   const playerRef = useRef(null);
 
   const isYouTube = ReactPlayer.canPlay(url) && url.includes("youtube");
 
   const aspectRatio = isYouTube ? 4 / 3 : 16 / 9;
-
-  const width =
-    window.innerWidth > 700
-      ? window.innerWidth - 30
-      : window.innerWidth - 200 - 60;
-
-  const height =
-    width / aspectRatio < window.innerHeight - 200
-      ? width / aspectRatio
-      : window.innerHeight - 200;
 
   const handlePlay = () => setPlaying(true);
   const handlePause = () => setPlaying(false);

@@ -25,10 +25,21 @@ body {
   background-color: rgb(30, 255, 0);
 }
 
+body {
+  font-family: "Geist Mono", monospace;
+}
+
 .p,
 button,
 a {
   font-size: 10px;
+  color: black;
+  font: var(--font-mono);
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
 }
 
 .standard-button {
@@ -42,14 +53,61 @@ a {
   text-align: center;
   display: inline-block;
   font-size: 15px;
-  font-style: italic;
+  text-transform: uppercase;
   font-weight: 900;
 }
 
 .button {
   padding: 10px 15px;
-  background: lightgrey;
+  background: white;
   border-radius: 15px;
-  border: 1px solid black;
-  margin: 10px;
+  border: 3px solid black;
+  margin: 5px;
+}
+.mapbutton {
+  padding: 10px 15px;
+  background: white;
+  border-radius: 15px;
+}
+.navbutton:hover,
+.mapbutton:hover {
+  background-color: lightyellow;
+}
+.navbutton {
+  height: 35px;
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.navbutton {
+  z-index: 9999999;
+}
+
+.s2cbutton {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 5px;
+}
+
+.mapimage {
+  width: 100%;
+}
+
+.appcontent {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 9999999;
+  background: white;
+  border-radius: 15px;
+  border: 3px solid black;
+  margin: 5px;
+  padding: 10px 15px;
+  font-size: 8px;
+}
+
+.imagelabel {
+  font-size: 8px;
 }

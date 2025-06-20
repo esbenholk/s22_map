@@ -1,12 +1,13 @@
 import { useRef, useEffect, useState, useContext } from "react";
 import * as d3 from "d3";
 
-import imageUrlBuilder from "@sanity/image-url";
 import useWindowDimensions from "./useWindowDimensions";
-import client from "./client";
+
 import BlockContent from "./blockContent";
 import VideoPlayer from "./videoPlayer";
 
+import client from "./client";
+import imageUrlBuilder from "@sanity/image-url";
 const builder = imageUrlBuilder(client);
 function urlFor(source) {
   return builder.image(source);
@@ -23,14 +24,34 @@ function Canvas({ _centers }) {
   const { width, height } = useWindowDimensions();
   const [isMobile, setIsMobile] = useState(false);
 
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [debouncedZoom, setDebouncedZoom] = useState(1);
+
   useEffect(() => {
     const svg = d3.select(zoomRef.current);
     const zoomBehavior = d3.zoom().on("zoom", (event) => {
       d3.select(containerRef.current).attr("transform", event.transform);
+      setZoomLevel(event.transform.k); // 👈 Capture zoom level
     });
     zoomBehaviorRef.current = zoomBehavior;
     svg.call(zoomBehavior);
   }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedZoom(zoomLevel);
+    }, 150); // debounce for 150ms
+    return () => clearTimeout(timeout);
+  }, [zoomLevel]);
+
+  // useEffect(() => {
+  //   const svg = d3.select(zoomRef.current);
+  //   const zoomBehavior = d3.zoom().on("zoom", (event) => {
+  //     d3.select(containerRef.current).attr("transform", event.transform);
+  //   });
+  //   zoomBehaviorRef.current = zoomBehavior;
+  //   svg.call(zoomBehavior);
+  // }, []);
 
   const getCenterXY = (center, index, width, height) => ({
     x: index === 0 ? width / 2 : center.x,
@@ -276,7 +297,7 @@ function Canvas({ _centers }) {
         {centers.map((center, idx) => (
           <button
             key={center.id}
-            className="button"
+            className="button navbutton"
             onClick={() => {
               const svg = d3.select(zoomRef.current);
               const transform = d3.zoomIdentity.translate(
@@ -410,14 +431,20 @@ function Canvas({ _centers }) {
                     height={el.height || 300}
                   >
                     <div xmlns="http://www.w3.org/1999/xhtml">
-                      <p style={{ color: el.color, textAlign: "left" }}>
+                      <p
+                        style={{ color: el.color, textAlign: "left" }}
+                        className="imagelabel"
+                      >
                         {el.text}
                       </p>
                       <img
                         src={urlFor(el.src)
-                          .width(el.width || 300)
+                          .width(
+                            Math.round((el.width ?? 300) * debouncedZoom * 2)
+                          ) // 👈 Adjust resolution
                           .url()}
                         alt="img"
+                        className="mapimage"
                       />
                     </div>
                   </foreignObject>
@@ -435,12 +462,10 @@ function Canvas({ _centers }) {
                   <div
                     xmlns="http://www.w3.org/1999/xhtml"
                     style={{
-                      padding: "10px 15px",
-                      background: "lightgrey",
-                      borderRadius: "15px",
-                      border: "1px solid" + el.color,
+                      border: "3px solid" + el.color,
                       fontSize: "8px",
                     }}
+                    className="mapbutton"
                   >
                     <a
                       href={el.href}
@@ -467,9 +492,9 @@ function Canvas({ _centers }) {
                     xmlns="http://www.w3.org/1999/xhtml"
                     style={{
                       padding: "10px 15px",
-                      background: "lightgrey",
+                      background: "white",
                       borderRadius: "15px",
-                      border: "1px solid" + el.color,
+                      border: "3px solid" + el.color,
                       fontSize: "8px",
                     }}
                   >
@@ -498,9 +523,9 @@ function Canvas({ _centers }) {
                     xmlns="http://www.w3.org/1999/xhtml"
                     style={{
                       padding: "10px",
-                      background: "lightgrey",
+                      background: "white",
                       borderRadius: "15px",
-                      border: "1px solid" + el.color,
+                      border: "3px solid" + el.color,
                       fontSize: "14px",
                     }}
                   >
@@ -509,8 +534,6 @@ function Canvas({ _centers }) {
                 </foreignObject>
               );
             } else if (el._type === "videoElement") {
-              console.log("has video", el);
-
               return (
                 <foreignObject
                   key={el.id}
@@ -518,10 +541,14 @@ function Canvas({ _centers }) {
                   x={x}
                   y={y}
                   width={el.width || 320}
-                  height={el.height || 240}
+                  height={el.height || 200}
                 >
                   <div xmlns="http://www.w3.org/1999/xhtml">
-                    <VideoPlayer url={el.src} />
+                    <VideoPlayer
+                      url={el.link}
+                      width={el.width || 320}
+                      height={el.height || 200}
+                    />
                   </div>
                 </foreignObject>
               );
@@ -564,8 +591,6 @@ function Canvas({ _centers }) {
 }
 
 export default function CanvasWrapper({ centers }) {
-  console.log("has centers in wrapper", centers);
-
   return (
     <div
       style={{
