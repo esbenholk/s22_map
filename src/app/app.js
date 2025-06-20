@@ -117,7 +117,7 @@ export default function App() {
             rel="noopener noreferrer"
           >
             {siteSettings && siteSettings.logo ? (
-              <img src={urlFor(siteSettings.logo).width(30).url()} alt="img" />
+              <img src={urlFor(siteSettings.logo).width(100).url()} alt="img" />
             ) : (
               "S2C"
             )}
